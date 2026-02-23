@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskTracker App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            justify-content: center;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .task-input {
+            flex: 1;
+            background: white;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-size: 16px;
+            color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .task-input:focus {
+            outline: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .add-button {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .add-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .add-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .task-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .task-checkbox.completed {
+            background: #2ecc71;
+            border-color: #2ecc71;
+            animation: checkmarkPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .task-checkbox.completed::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        @keyframes checkmarkPop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .task-item.completed-animation {
+            animation: taskComplete 0.6s ease-out forwards;
+        }
+
+        @keyframes taskComplete {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(20px) scale(0.9);
+                background: #e8f8f5;
+            }
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+
+        .task-text.completed {
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .delete-button {
+            background: #ff4757;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .delete-button:hover {
+            background: #ff3742;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            border: 3px solid white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 16px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 4px;
+            margin-top: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab:not(.active) {
+            opacity: 0.7;
+        }
+
+        .settings {
+            display: none;
+        }
+
+        .settings.active {
+            display: block;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .theme-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme-card.selected {
+            border-color: white;
+            background: rgba(255,255,255,0.25);
+        }
+
+        .theme-preview {
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .theme-name {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .title {
+                font-size: 28px;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">TaskTracker</h1>
+            <p class="subtitle">Stay organized and productive</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <span style="font-size: 18px; color: white;">⊙</span>
+                <span id="active-count">0 active</span>
+            </div>
+            <div class="stat">
+                <span style="font-size: 18px; color: white;">✔</span>
+                <span id="completed-count">0 done</span>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="task-input" 
+                id="task-input" 
+                placeholder="Add a new task..."
+                maxlength="100"
+            >
+            <button class="add-button" id="add-button">Add</button>
+        </div>
+
+        <div class="task-list" id="task-list">
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(event, 'tasks')">Tasks</div>
+            <div class="tab" onclick="switchTab(event, 'settings')">Settings</div>
+        </div>
+
+        <div class="settings" id="settings">
+            <h2 style="margin-bottom: 16px; font-size: 20px;">Theme</h2>
+            <div class="theme-grid">
+                <div class="theme-card selected" onclick="changeTheme('purple')" data-theme="purple">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                </div>
+                <div class="theme-card" onclick="changeTheme('ocean')" data-theme="ocean">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%);"></div>
+                </div>
+                <div class="theme-card" onclick="changeTheme('forest')" data-theme="forest">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #134E5E 0%, #71B280 100%);"></div>
+                </div>
+                <div class="theme-card" onclick="changeTheme('rose')" data-theme="rose">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #F857A6 0%, #FF5858 100%);"></div>
+                </div>
+                <div class="theme-card" onclick="changeTheme('black')" data-theme="black">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);"></div>
+                </div>
+                <div class="theme-card" onclick="changeTheme('lavender')" data-theme="lavender">
+                    <div class="theme-preview" style="background: linear-gradient(135deg, #A8EDEA 0%, #FED6E3 100%);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Task management - persisted in localStorage
+        let tasks = [];
+        let currentTheme = 'purple';
+
+        const themes = {
+            purple: ['#667eea', '#764ba2'],
+            ocean: ['#2E3192', '#1BFFFF'],
+            forest: ['#134E5E', '#71B280'],
+            rose: ['#F857A6', '#FF5858'],
+            black: ['#000000', '#1a1a1a'],
+            lavender: ['#A8EDEA', '#FED6E3']
+        };
+
+        // Initialize app
+        function init() {
+            loadTasksFromStorage();
+            applyTheme(currentTheme);
+            updateStats();
+            setupEventListeners();
+            // Start with Add button disabled until there's input
+            const addBtn = document.getElementById('add-button');
+            if (addBtn) addBtn.disabled = true;
+        }
+
+        // Task functions
+        function addTask() {
+            const input = document.getElementById('task-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                const task = {
+                    id: Date.now().toString(),
+                    text: text,
+                    completed: false,
+                    createdAt: Date.now()
+                };
+                
+                tasks.unshift(task);
+                saveTasks();
+                loadTasks();
+                input.value = '';
+                input.focus();
+                updateStats();
+                document.getElementById('add-button').disabled = true;
+            }
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+
+                if (task.completed) {
+                    // Reload to show completed state first
+                    loadTasks();
+                    updateStats();
+
+                    // Then add animation and remove after it finishes
+                    setTimeout(() => {
+                        const taskElement = document.querySelector(`[data-task-id="${id}"]`);
+                        if (taskElement) {
+                            taskElement.classList.add('completed-animation');
+                            setTimeout(() => {
+                                tasks = tasks.filter(t => t.id !== id);
+                                saveTasks();
+                                loadTasks();
+                                updateStats();
+                            }, 1000);
+                        }
+                    }, 50);
+                } else {
+                    loadTasks();
+                    updateStats();
+                }
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            loadTasks();
+            updateStats();
+        }
+
+        function loadTasks() {
+            const taskList = document.getElementById('task-list');
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">✓</div>
+                        <div class="empty-title">No tasks yet</div>
+                        <div class="empty-subtitle">Add your first task to get started!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const tasksHTML = tasks.map(task => `
+                <div class="task-item" data-task-id="${task.id}">
+                    <button type="button" class="task-checkbox ${task.completed ? 'completed' : ''}" 
+                        aria-pressed="${task.completed}" aria-label="Toggle complete" onclick="toggleTask('${task.id}')"></button>
+                    <div class="task-text ${task.completed ? 'completed' : ''}">${escapeHtml(task.text)}</div>
+                    <button class="delete-button" aria-label="Delete task" onclick="deleteTask('${task.id}')">Delete</button>
+                </div>
+            `).join('');
+            
+            taskList.innerHTML = tasksHTML;
+        }
+
+        function updateStats() {
+            const activeCount = tasks.filter(t => !t.completed).length;
+            const completedCount = tasks.filter(t => t.completed).length;
+
+            document.getElementById('active-count').textContent = `${activeCount} active`;
+            document.getElementById('completed-count').textContent = `${completedCount} done`;
+        }
+
+        // Persistence helpers
+        function saveTasks() {
+            try {
+                localStorage.setItem('tasker_tasks', JSON.stringify(tasks));
+            } catch (e) {
+                // ignore quota errors
+            }
+        }
+
+        function loadTasksFromStorage() {
+            try {
+                const raw = localStorage.getItem('tasker_tasks');
+                tasks = raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                tasks = [];
+            }
+        }
+
+        // Theme functions
+        function changeTheme(themeName) {
+            currentTheme = themeName;
+            applyTheme(themeName);
+            
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-theme="${themeName}"]`).classList.add('selected');
+        }
+
+        function applyTheme(themeName) {
+            const colors = themes[themeName];
+            document.body.style.background = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+        }
+
+        // Tab functions
+        function switchTab(event, tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'tasks') {
+                document.getElementById('task-list').style.display = 'flex';
+                document.getElementById('settings').classList.remove('active');
+            } else {
+                document.getElementById('task-list').style.display = 'none';
+                document.getElementById('settings').classList.add('active');
+            }
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const inputEl = document.getElementById('task-input');
+            inputEl.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+
+            // Enable/disable Add button based on input content
+            inputEl.addEventListener('input', function() {
+                const addBtn = document.getElementById('add-button');
+                if (addBtn) addBtn.disabled = inputEl.value.trim().length === 0;
+            });
+
+            const addBtn = document.getElementById('add-button');
+            addBtn.addEventListener('click', addTask);
+        }
+
+    // Initialize the app
+    init();
+    </script>
+</body>
+</html>
